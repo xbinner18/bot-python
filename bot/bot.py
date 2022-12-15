@@ -78,13 +78,16 @@ class Bot(object):
     def user_agent(self):
 
         return "{name}/{version} (uin={uin}) bot-python/{library_version}".format(
-            name=self.name if self.name is not None else requests.get(url="{}/self/get".format(self.api_base_url),
-                                                                      params={"token": self.token}
-                                                                      ).json().get('nick'),
-            # name=self.name,
+            name=self.name
+            if self.name is not None
+            else requests.get(
+                url=f"{self.api_base_url}/self/get", params={"token": self.token}
+            )
+            .json()
+            .get('nick'),
             version=self.version if self.version is not None else 'base',
             uin="" if self.uin is None else self.uin,
-            library_version=version
+            library_version=version,
         )
 
     @cached_property
@@ -103,9 +106,12 @@ class Bot(object):
             try:
                 response = self.events_get()
 
-                if response:
-                    if "description" in response.json() and response.json()["description"] == 'Invalid token':
-                        raise InvalidToken(response.json())
+                if (
+                    response
+                    and "description" in response.json()
+                    and response.json()["description"] == 'Invalid token'
+                ):
+                    raise InvalidToken(response.json())
 
                 for event in response.json()["events"]:
                     self.dispatcher.dispatch(Event(type_=EventType(event["type"]), data=event["payload"]))
@@ -159,13 +165,13 @@ class Bot(object):
         last_event_id = self.last_event_id if last_event_id is None else last_event_id
 
         response = self.http_session.get(
-            url="{}/events/get".format(self.api_base_url),
+            url=f"{self.api_base_url}/events/get",
             params={
                 "token": self.token,
                 "pollTime": poll_time_s,
-                "lastEventId": last_event_id
+                "lastEventId": last_event_id,
             },
-            timeout=poll_time_s + self.timeout_s
+            timeout=poll_time_s + self.timeout_s,
         )
 
         if 'events' in response.json() and response.json()['events']:
@@ -175,11 +181,9 @@ class Bot(object):
 
     def self_get(self):
         return self.http_session.get(
-            url="{}/self/get".format(self.api_base_url),
-            params={
-                "token": self.token
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/self/get",
+            params={"token": self.token},
+            timeout=self.timeout_s,
         )
 
     def default_handler(self):
@@ -280,7 +284,7 @@ class Bot(object):
         if parse_mode:
             ParseMode(parse_mode)
         return self.http_session.get(
-            url="{}/messages/sendText".format(self.api_base_url),
+            url=f"{self.api_base_url}/messages/sendText",
             params={
                 "token": self.token,
                 "chatId": chat_id,
@@ -290,9 +294,9 @@ class Bot(object):
                 "forwardMsgId": forward_msg_id,
                 "inlineKeyboardMarkup": keyboard_to_json(inline_keyboard_markup),
                 "parseMode": parse_mode,
-                "format": format_to_json(format_)
+                "format": format_to_json(format_),
             },
-            timeout=self.timeout_s
+            timeout=self.timeout_s,
         )
 
     def send_file(self, chat_id, file_id=None, file=None, caption=None, reply_msg_id=None, forward_chat_id=None,
@@ -303,7 +307,7 @@ class Bot(object):
             ParseMode(parse_mode)
         request = Request(
             method="GET",
-            url="{}/messages/sendFile".format(self.api_base_url),
+            url=f"{self.api_base_url}/messages/sendFile",
             params={
                 "token": self.token,
                 "chatId": chat_id,
@@ -314,8 +318,8 @@ class Bot(object):
                 "forwardMsgId": forward_msg_id,
                 "inlineKeyboardMarkup": keyboard_to_json(inline_keyboard_markup),
                 "parseMode": parse_mode,
-                "format": format_to_json(format_)
-            }
+                "format": format_to_json(format_),
+            },
         )
         if file:
             request.method = "POST"
@@ -327,7 +331,7 @@ class Bot(object):
                    forward_msg_id=None, inline_keyboard_markup=None):
         request = Request(
             method="GET",
-            url="{}/messages/sendVoice".format(self.api_base_url),
+            url=f"{self.api_base_url}/messages/sendVoice",
             params={
                 "token": self.token,
                 "chatId": chat_id,
@@ -335,8 +339,8 @@ class Bot(object):
                 "replyMsgId": reply_msg_id,
                 "forwardChatId": forward_chat_id,
                 "forwardMsgId": forward_msg_id,
-                "inlineKeyboardMarkup": keyboard_to_json(inline_keyboard_markup)
-            }
+                "inlineKeyboardMarkup": keyboard_to_json(inline_keyboard_markup),
+            },
         )
 
         if file:
@@ -351,7 +355,7 @@ class Bot(object):
         if parse_mode:
             ParseMode(parse_mode)
         return self.http_session.get(
-            url="{}/messages/editText".format(self.api_base_url),
+            url=f"{self.api_base_url}/messages/editText",
             params={
                 "token": self.token,
                 "chatId": chat_id,
@@ -359,205 +363,158 @@ class Bot(object):
                 "text": text,
                 "inlineKeyboardMarkup": keyboard_to_json(inline_keyboard_markup),
                 "parseMode": parse_mode,
-                "format": format_to_json(format_)
+                "format": format_to_json(format_),
             },
-            timeout=self.timeout_s
+            timeout=self.timeout_s,
         )
 
     def delete_messages(self, chat_id, msg_id):
         return self.http_session.get(
-            url="{}/messages/deleteMessages".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "msgId": msg_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/messages/deleteMessages",
+            params={"token": self.token, "chatId": chat_id, "msgId": msg_id},
+            timeout=self.timeout_s,
         )
 
     def answer_callback_query(self, query_id, text, show_alert=False, url=None):
         return self.http_session.get(
-            url="{}/messages/answerCallbackQuery".format(self.api_base_url),
+            url=f"{self.api_base_url}/messages/answerCallbackQuery",
             params={
                 "token": self.token,
                 "queryId": query_id,
                 "text": text,
                 "showAlert": 'true' if show_alert else 'false',
-                "url": url
-            }
+                "url": url,
+            },
         )
 
     def send_actions(self, chat_id, actions):
         return self.http_session.get(
-            url="{}/chats/sendActions".format(self.api_base_url),
+            url=f"{self.api_base_url}/chats/sendActions",
             params={
                 "token": self.token,
                 "chatId": chat_id,
-                "actions": actions if len(actions) else ''
+                "actions": actions if len(actions) else '',
             },
-            timeout=self.timeout_s
+            timeout=self.timeout_s,
         )
 
     def get_chat_info(self, chat_id):
         return self.http_session.get(
-            url="{}/chats/getInfo".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/getInfo",
+            params={"token": self.token, "chatId": chat_id},
+            timeout=self.timeout_s,
         )
 
     def get_chat_admins(self, chat_id):
         return self.http_session.get(
-            url="{}/chats/getAdmins".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/getAdmins",
+            params={"token": self.token, "chatId": chat_id},
+            timeout=self.timeout_s,
         )
 
     def get_chat_members(self, chat_id, cursor=None):
         return self.http_session.get(
-            url="{}/chats/getMembers".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "cursor": cursor
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/getMembers",
+            params={"token": self.token, "chatId": chat_id, "cursor": cursor},
+            timeout=self.timeout_s,
         )
 
     def get_chat_blocked_users(self, chat_id):
         return self.http_session.get(
-            url="{}/chats/getBlockedUsers".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/getBlockedUsers",
+            params={"token": self.token, "chatId": chat_id},
+            timeout=self.timeout_s,
         )
 
     def get_chat_pending_users(self, chat_id):
         return self.http_session.get(
-            url="{}/chats/getPendingUsers".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/getPendingUsers",
+            params={"token": self.token, "chatId": chat_id},
+            timeout=self.timeout_s,
         )
 
     def chat_block_user(self, chat_id, user_id, del_last_messages=False):
         return self.http_session.get(
-            url="{}/chats/blockUser".format(self.api_base_url),
+            url=f"{self.api_base_url}/chats/blockUser",
             params={
                 "token": self.token,
                 "chatId": chat_id,
                 "userId": user_id,
-                "delLastMessages": str(del_last_messages).lower()
+                "delLastMessages": str(del_last_messages).lower(),
             },
-            timeout=self.timeout_s
+            timeout=self.timeout_s,
         )
 
     def chat_unblock_user(self, chat_id, user_id):
         return self.http_session.get(
-            url="{}/chats/unblockUser".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "userId": user_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/unblockUser",
+            params={"token": self.token, "chatId": chat_id, "userId": user_id},
+            timeout=self.timeout_s,
         )
 
     def chat_resolve_pending(self, chat_id, approve=True, user_id="", everyone=False):
         return self.http_session.get(
-            url="{}/chats/resolvePending".format(self.api_base_url),
+            url=f"{self.api_base_url}/chats/resolvePending",
             params={
                 "token": self.token,
                 "chatId": chat_id,
                 "approve": str(approve).lower(),
                 "userId": user_id,
-                "everyone": str(everyone).lower()
+                "everyone": str(everyone).lower(),
             },
-            timeout=self.timeout_s
+            timeout=self.timeout_s,
         )
 
     def set_chat_title(self, chat_id, title):
         return self.http_session.get(
-            url="{}/chats/setTitle".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "title": title
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/setTitle",
+            params={"token": self.token, "chatId": chat_id, "title": title},
+            timeout=self.timeout_s,
         )
 
     def set_chat_about(self, chat_id, about):
         return self.http_session.get(
-            url="{}/chats/setAbout".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "about": about
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/setAbout",
+            params={"token": self.token, "chatId": chat_id, "about": about},
+            timeout=self.timeout_s,
         )
 
     def set_chat_rules(self, chat_id, rules):
         return self.http_session.get(
-            url="{}/chats/setRules".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "rules": rules
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/setRules",
+            params={"token": self.token, "chatId": chat_id, "rules": rules},
+            timeout=self.timeout_s,
         )
 
     def get_file_info(self, file_id):
         return self.http_session.get(
-            url="{}/files/getInfo".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "fileId": file_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/files/getInfo",
+            params={"token": self.token, "fileId": file_id},
+            timeout=self.timeout_s,
         )
 
     def pin_message(self, chat_id, msg_id):
         return self.http_session.get(
-            url="{}/chats/pinMessage".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "msgId": msg_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/pinMessage",
+            params={"token": self.token, "chatId": chat_id, "msgId": msg_id},
+            timeout=self.timeout_s,
         )
 
     def unpin_message(self, chat_id, msg_id):
         return self.http_session.get(
-            url="{}/chats/unpinMessage".format(self.api_base_url),
-            params={
-                "token": self.token,
-                "chatId": chat_id,
-                "msgId": msg_id
-            },
-            timeout=self.timeout_s
+            url=f"{self.api_base_url}/chats/unpinMessage",
+            params={"token": self.token, "chatId": chat_id, "msgId": msg_id},
+            timeout=self.timeout_s,
         )
 
     def delete_chat_members(self, chat_id, members):
         return self.http_session.get(
-            url="{}/chats/members/delete".format(self.api_base_url),
+            url=f"{self.api_base_url}/chats/members/delete",
             params={
                 "token": self.token,
                 "chatId": chat_id,
-                "members": json.dumps([{"sn": m} for m in members])
-            }
+                "members": json.dumps([{"sn": m} for m in members]),
+            },
         )
 
 
@@ -632,9 +589,13 @@ class SkipDuplicateMessageHandler(MessageHandler):
         self.cache = cache
 
     def check(self, event, dispatcher):
-        if super(SkipDuplicateMessageHandler, self).check(event=event, dispatcher=dispatcher):
-            if self.cache.get(event.data["msgId"]) == event.data["text"]:
-                raise StopDispatching
+        if (
+            super(SkipDuplicateMessageHandler, self).check(
+                event=event, dispatcher=dispatcher
+            )
+            and self.cache.get(event.data["msgId"]) == event.data["text"]
+        ):
+            raise StopDispatching
 
 
 class InvalidToken(Exception):

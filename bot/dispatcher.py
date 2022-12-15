@@ -20,11 +20,13 @@ class Dispatcher(object):
     def dispatch(self, event):
         # noinspection PyBroadException
         try:
-            self.log.debug("Dispatching event '{}'.".format(event))
+            self.log.debug(f"Dispatching event '{event}'.")
             for handler in (h for h in self.handlers if h.check(event=event, dispatcher=self)):
                 handler.handle(event=event, dispatcher=self)
         except StopDispatching:
-            self.log.debug("Caught '{}' exception, stopping dispatching.".format(StopDispatching.__name__))
+            self.log.debug(
+                f"Caught '{StopDispatching.__name__}' exception, stopping dispatching."
+            )
         except Exception:
             self.log.exception("Exception while dispatching event!")
 
