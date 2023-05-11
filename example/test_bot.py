@@ -35,7 +35,10 @@ def help_cb(bot, event):
 
 
 def test_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="User command: {}".format(event.data['text']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"User command: {event.data['text']}",
+    )
 
 
 def unknown_command_cb(bot, event):
@@ -50,7 +53,10 @@ def unknown_command_cb(bot, event):
 
 
 def private_command_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="Private user command: {}".format(event.data['text']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"Private user command: {event.data['text']}",
+    )
 
 
 def new_chat_members_cb(bot, event):
@@ -72,19 +78,31 @@ def left_chat_members_cb(bot, event):
 
 
 def pinned_message_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="Message {} was pinned".format(event.data['msgId']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"Message {event.data['msgId']} was pinned",
+    )
 
 
 def unpinned_message_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="Message {} was unpinned".format(event.data['msgId']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"Message {event.data['msgId']} was unpinned",
+    )
 
 
 def edited_message_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="Message {} was edited".format(event.data['msgId']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"Message {event.data['msgId']} was edited",
+    )
 
 
 def deleted_message_cb(bot, event):
-    bot.send_text(chat_id=event.data['chat']['chatId'], text="Message {} was deleted".format(event.data['msgId']))
+    bot.send_text(
+        chat_id=event.data['chat']['chatId'],
+        text=f"Message {event.data['msgId']} was deleted",
+    )
 
 
 def message_with_bot_mention_cb(bot, event):
@@ -104,8 +122,8 @@ def reply_to_message_cb(bot, event):
     msg_id = event.data['msgId']
     bot.send_text(
         chat_id=event.data['chat']['chatId'],
-        text="Reply to message: {}".format(msg_id),
-        reply_msg_id=msg_id
+        text=f"Reply to message: {msg_id}",
+        reply_msg_id=msg_id,
     )
 
 

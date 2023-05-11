@@ -134,9 +134,7 @@ class FeedbackCommandHandler(CommandHandler):
 
     def message_cb(self, bot, event):
         source = event.data['chat']['chatId']
-        feedback_text = event.data["text"].partition(" ")[2].strip()
-
-        if feedback_text:
+        if feedback_text := event.data["text"].partition(" ")[2].strip():
             bot.send_text(chat_id=self.target, text=self.message.format(source=source, message=feedback_text))
 
             if self.reply is not None:

@@ -50,20 +50,16 @@ class InlineKeyboardMarkup(Dictionaryable, JsonSerializable):
         self.keyboard = []
 
     def add(self, *args):
-        i = 1
         row = []
-        for button in args:
+        for i, button in enumerate(args, start=1):
             row.append(button.to_dic())
             if i % self.buttons_in_row == 0:
                 self.keyboard.append(row)
                 row = []
-            i += 1
         self.keyboard.append(row) if len(row) > 0 else None
 
     def row(self, *args):
-        btn_array = []
-        for button in args:
-            btn_array.append(button.to_dic())
+        btn_array = [button.to_dic() for button in args]
         self.keyboard.append(btn_array)
         return self
 
@@ -109,7 +105,5 @@ class Format(Dictionaryable, JsonSerializable):
         return self.styles
 
     def to_json(self):
-        result = {}
-        for key in self.styles.keys():
-            result[key] = self.styles[key].to_dic()
+        result = {key: self.styles[key].to_dic() for key in self.styles.keys()}
         return json.dumps(result)
